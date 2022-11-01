@@ -1,3 +1,10 @@
 server:
   host: "localhost"
   port: ":8080"
+
+db:
+  host: "localhost"
+  port: "5432"
+  user: "postgres"
+  dbname: "gin"
+  sslmode: "disable"
