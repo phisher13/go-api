@@ -28,8 +28,8 @@ func (s *storage) GetUser(username, passwordHash string) (entity.UserModel, erro
 
 func (s *storage) CreateUser(dto entity.UserDTO) (string, error) {
 	var uuid string
-	query := fmt.Sprintf("INSERT INTO %s(username, password_hash) VALUES ($1, $2) RETURNING uuid", usersTable)
-	err := s.db.QueryRow(query, dto.Username, dto.Password).Scan(&uuid)
+	query := fmt.Sprintf("INSERT INTO %s(username, email, password_hash) VALUES ($1, $2, $3) RETURNING uuid", usersTable)
+	err := s.db.QueryRow(query, dto.Username, dto.Email, dto.Password).Scan(&uuid)
 
 	return uuid, err
 }
