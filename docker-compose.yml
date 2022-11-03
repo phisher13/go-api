@@ -1,0 +1,21 @@
+version: '1.19'
+
+services:
+  go-api:
+    build: ./
+    command: ./wait-for-postgres.sh db ./go-api
+    ports:
+      - 8080:8080
+    depends_on:
+      - db
+    environment:
+      - DB_PASSWORD=root
+  db:
+    restart: always
+    image: postgres:latest
+    volumes:
+      - ./.database/postgres/data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=root
+    ports:
+      - 5433:5433
