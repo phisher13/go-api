@@ -2,6 +2,7 @@ package service
 
 import (
 	"crypto/sha1"
+	"errors"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/phisher13/go-api/internal/domain/auth/entity"
@@ -20,24 +21,24 @@ const (
 	tokenTTL   = 12 * time.Hour
 )
 
-type service struct {
+type Service struct {
 	store storage.Authorization
 }
 
 func NewAuthService(store storage.Authorization) AuthService {
-	return &service{store: store}
+	return &Service{store: store}
 }
 
-func (s *service) GetUser(username, passwordHash string) (entity.UserModel, error) {
+func (s *Service) GetUser(username, passwordHash string) (entity.UserModel, error) {
 	return s.store.GetUser(username, generatePasswordHash(passwordHash))
 }
 
-func (s *service) CreateUser(dto entity.UserDTO) (string, error) {
+func (s *Service) CreateUser(dto entity.UserDTO) (string, error) {
 	dto.Password = generatePasswordHash(dto.Password)
 	return s.store.CreateUser(dto)
 }
 
-func (s *service) GenerateToken(username, password string) (string, error) {
+func (s *Service) GenerateToken(username, password string) (string, error) {
 	user, err := s.store.GetUser(username, generatePasswordHash(password))
 	if err != nil {
 		return "", err
@@ -52,6 +53,26 @@ func (s *service) GenerateToken(username, password string) (string, error) {
 	})
 
 	return token.SignedString([]byte(signingKey))
+}
+
+func (s *Service) ParseToken(accessToken string) (string, error) {
+	token, err := jwt.ParseWithClaims(accessToken, &tokenClaims{}, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New("invalid signing method")
+		}
+
+		return []byte(signingKey), nil
+	})
+	if err != nil {
+		return "", err
+	}
+
+	claims, ok := token.Claims.(*tokenClaims)
+	if !ok {
+		return "", errors.New("token claims are not of type *tokenClaims")
+	}
+
+	return claims.UserUUID, nil
 }
 
 func generatePasswordHash(password string) string {
