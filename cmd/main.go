@@ -5,6 +5,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/phisher13/go-api/config"
 	"github.com/phisher13/go-api/internal/composite/auth"
+	"github.com/phisher13/go-api/internal/composite/product"
 	"github.com/phisher13/go-api/pkg/client/postgres"
 	"github.com/spf13/viper"
 	"log"
@@ -44,8 +45,16 @@ func main() {
 		log.Fatalf("error initializing auth composite, %s", err.Error())
 	}
 
+	productComposite, err := product.NewProductComposite(db)
+	if err != nil {
+		log.Fatalf("error initializing product composite, %s", err.Error())
+	}
+
 	// init auth router
 	authComposite.Handler.InitRoutes(router)
+
+	// init product router
+	productComposite.Handler.InitRoutes(router)
 
 	// starting web server
 	log.Fatal(router.Run(viper.GetString("server.port")))
