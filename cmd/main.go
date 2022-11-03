@@ -23,7 +23,7 @@ func main() {
 	}
 
 	// parse environment variables
-	if err := godotenv.Load("../.env"); err != nil {
+	if err := godotenv.Load(".env"); err != nil {
 		log.Fatalf("error loading env variables: %s", err.Error())
 	}
 
